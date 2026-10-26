@@ -3,73 +3,513 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CloudShift Advisor</title>
-<!-- Optional: used only to draw A2UI Icon components. If it can't load (offline/
-     corp network), icons fall back to showing their name as text. -->
+<title>CloudShift Advisor — Enterprise Migration Copilot</title>
+<!-- Marked library (v12 pinned for stable browser usage) -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<!-- DOMPurify to sanitize HTML -->
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<!-- Google Fonts & Material Symbols -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
-<style>
-  :root { --accent:#1a73e8; --bg:#f6f8fa; --border:#dfe3e8; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); display:flex; flex-direction:column; height:100vh; }
-  header { background:var(--accent); color:#fff; padding:.9rem 1.2rem; font-weight:700; }
-  #log { flex:1; overflow-y:auto; padding:1.2rem; max-width:780px; width:100%; margin:0 auto; }
-  .msg { margin:.6rem 0; }
-  .msg.user { text-align:right; }
-  .bubble { display:inline-block; padding:.6rem .9rem; border-radius:12px; background:#fff; border:1px solid var(--border); text-align:left; max-width:90%; white-space:pre-wrap; }
-  .msg.user .bubble { background:var(--accent); color:#fff; border:none; }
-  /* When the reply is an A2UI card, drop the bubble chrome so the card stands alone. */
-  .bubble.rich { background:transparent; border:none; padding:0; max-width:100%; white-space:normal; }
-  form { display:flex; gap:.5rem; padding:1rem; border-top:1px solid var(--border); background:#fff; }
-  input { flex:1; padding:.7rem; border:1px solid var(--border); border-radius:8px; font-size:1rem; }
-  button { padding:.7rem 1.1rem; border:none; border-radius:8px; background:var(--accent); color:#fff; font-weight:600; cursor:pointer; }
 
-  /* --- A2UI component styles (Card, Column, Row, Text, Divider, List, Image, Icon) --- */
-  .a2card { border:1px solid var(--border); border-radius:12px; padding:1rem; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.06); max-width:100%; }
-  .a2card + .a2card, .a2col > .a2card { margin-top:.6rem; }
-  .a2col { display:flex; flex-direction:column; gap:.4rem; }
-  .a2row { display:flex; flex-direction:row; gap:.6rem; align-items:center; flex-wrap:wrap; }
-  .a2row.between { justify-content:space-between; }
-  .a2text { margin:0; line-height:1.4; }
-  .a2text.a2-h1 { font-size:1.5rem; font-weight:700; }
-  .a2text.a2-h2 { font-size:1.25rem; font-weight:700; }
-  .a2text.a2-h3 { font-size:1.1rem; font-weight:600; }
-  .a2text.a2-h4 { font-size:1rem; font-weight:600; }
-  .a2text.a2-caption { font-size:.85rem; color:#666; }
-  .a2divider { border:none; border-top:1px solid var(--border); margin:.4rem 0; width:100%; }
-  .a2img { max-width:100%; border-radius:8px; display:block; }
-  .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-size:1.25rem; line-height:1; vertical-align:middle; color:var(--accent); }
+<style>
+  :root {
+    --primary: #1a73e8;
+    --primary-dark: #1557b0;
+    --primary-light: #e8f0fe;
+    --accent: #188038;
+    --bg-page: #f8f9fa;
+    --bg-card: #ffffff;
+    --border: #dadce0;
+    --border-light: #f1f3f4;
+    --text-main: #202124;
+    --text-muted: #5f6368;
+    --shadow-sm: 0 1px 3px rgba(60,64,67,0.12), 0 1px 2px rgba(60,64,67,0.24);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-page);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Header */
+  header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    z-index: 10;
+  }
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .brand-logo {
+    width: 32px;
+    height: 32px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+  .brand-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.2px;
+  }
+  .brand-badge {
+    background: #e6f4ea;
+    color: #137333;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 12px;
+    margin-left: 0.5rem;
+    border: 1px solid #ceead6;
+  }
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .header-btn {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+  }
+  .header-btn:hover {
+    background: #e8eaed;
+    color: var(--text-main);
+  }
+
+  /* Chat Viewport */
+  #log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 1rem;
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* Message Rows */
+  .msg {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    animation: fadeIn 0.2s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg.user {
+    justify-content: flex-end;
+  }
+  .msg.agent {
+    justify-content: flex-start;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+  }
+  .agent .avatar {
+    background: var(--primary);
+    color: #ffffff;
+  }
+  .user .avatar {
+    background: #5f6368;
+    color: #ffffff;
+    order: 2;
+  }
+
+  /* Bubbles */
+  .bubble-wrap {
+    max-width: 88%;
+    display: flex;
+    flex-direction: column;
+  }
+  .msg.user .bubble-wrap {
+    align-items: flex-end;
+  }
+
+  .bubble {
+    padding: 0.85rem 1.15rem;
+    border-radius: 14px;
+    line-height: 1.55;
+    font-size: 0.95rem;
+    word-break: break-word;
+  }
+  .msg.user .bubble {
+    background: var(--primary);
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  .msg.agent .bubble {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Markdown Content Styling */
+  .markdown-body {
+    width: 100%;
+  }
+  .markdown-body p { margin: 0 0 0.75rem 0; }
+  .markdown-body p:last-child { margin-bottom: 0; }
+  .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+    margin: 1.1rem 0 0.5rem 0;
+    color: #1a0dab;
+    font-weight: 700;
+  }
+  .markdown-body h1 { font-size: 1.35rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.3rem; }
+  .markdown-body h2 { font-size: 1.2rem; color: #202124; border-bottom: 1px solid var(--border-light); padding-bottom: 0.25rem; }
+  .markdown-body h3 { font-size: 1.05rem; color: #1a73e8; }
+  .markdown-body h4 { font-size: 0.95rem; }
+  .markdown-body ul, .markdown-body ol { margin: 0.5rem 0 0.75rem 1.25rem; padding: 0; }
+  .markdown-body li { margin-bottom: 0.35rem; }
+  .markdown-body strong { font-weight: 600; color: #111827; }
+
+  /* Beautiful Responsive Tables */
+  .markdown-body table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    text-align: left;
+    background: #ffffff;
+    margin: 0.85rem 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: table;
+  }
+  .markdown-body th {
+    background: #f1f3f4;
+    color: #202124;
+    font-weight: 600;
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border-light);
+  }
+  .markdown-body th:last-child { border-right: none; }
+  .markdown-body td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--border-light);
+    border-right: 1px solid var(--border-light);
+    color: #3c4043;
+  }
+  .markdown-body td:last-child { border-right: none; }
+  .markdown-body tr:last-child td { border-bottom: none; }
+  .markdown-body tr:nth-child(even) td { background: #fafbfc; }
+  .markdown-body tr:hover td { background: #f1f5fd; }
+
+  /* Code & Syntax */
+  .markdown-body code {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.86rem;
+    background: #f1f3f4;
+    color: #d93025;
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+  }
+  .msg.user code {
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+  }
+  .markdown-body pre {
+    background: #202124;
+    color: #f1f3f4;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    margin: 0.75rem 0;
+  }
+  .markdown-body pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+
+  /* Blockquotes */
+  .markdown-body blockquote {
+    margin: 0.75rem 0;
+    padding: 0.6rem 0.9rem;
+    border-left: 4px solid var(--primary);
+    background: var(--primary-light);
+    color: #174ea6;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+  }
+
+  /* A2UI Component Renderings */
+  .a2card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem;
+    background: #ffffff;
+    box-shadow: var(--shadow-sm);
+    margin-top: 0.6rem;
+    width: 100%;
+  }
+  .a2col { display: flex; flex-direction: column; gap: 0.5rem; }
+  .a2row { display: flex; flex-direction: row; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  .a2row.between { justify-content: space-between; }
+  .a2text { margin: 0; line-height: 1.45; }
+  .a2text.a2-h1 { font-size: 1.4rem; font-weight: 700; color: #202124; }
+  .a2text.a2-h2 { font-size: 1.2rem; font-weight: 700; color: #1a73e8; }
+  .a2text.a2-h3 { font-size: 1.05rem; font-weight: 600; color: #202124; }
+  .a2text.a2-caption { font-size: 0.85rem; color: var(--text-muted); }
+  .a2divider { border: none; border-top: 1px solid var(--border); margin: 0.5rem 0; width: 100%; }
+  .a2img { max-width: 100%; border-radius: 8px; display: block; margin: 0.5rem 0; }
+
+  /* Input Panel */
+  .input-container {
+    background: #ffffff;
+    border-top: 1px solid var(--border);
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+  }
+  .quick-chips {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+  .chip {
+    font-size: 0.8rem;
+    background: #f1f3f4;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 0.3rem 0.75rem;
+    color: var(--text-main);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+  .chip:hover {
+    background: var(--primary-light);
+    border-color: #aecbfa;
+    color: var(--primary-dark);
+  }
+  form {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+  }
+  input {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(26,115,232,0.18);
+  }
+  button {
+    padding: 0.75rem 1.4rem;
+    border: none;
+    border-radius: 24px;
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.15s ease;
+  }
+  button:hover {
+    background: var(--primary-dark);
+  }
+  button:disabled {
+    background: #dadce0;
+    cursor: not-allowed;
+  }
+
+  /* Loading indicator */
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 4px 8px;
+    align-items: center;
+  }
+  .typing-indicator span {
+    width: 6px;
+    height: 6px;
+    background: #80868b;
+    border-radius: 50%;
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
 </style>
 </head>
 <body>
-<header>CloudShift Advisor — VMware to GCP Migration Copilot</header>
-<div id="log"></div>
-<form id="form">
-  <input id="input" placeholder="Ask something…" autocomplete="off" autofocus>
-  <button>Send</button>
-</form>
+
+<header>
+  <div class="brand-group">
+    <div class="brand-logo"><span class="material-symbols-outlined">cloud</span></div>
+    <div>
+      <span class="brand-title">CloudShift Advisor</span>
+      <span class="brand-badge">VMware to GCP</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="header-btn" onclick="clearConversation()">
+      <span class="material-symbols-outlined" style="font-size:16px;">restart_alt</span> Reset Chat
+    </button>
+  </div>
+</header>
+
+<div id="log">
+  <div class="msg agent">
+    <div class="avatar"><span class="material-symbols-outlined">smart_toy</span></div>
+    <div class="bubble-wrap">
+      <div class="bubble">
+        <div class="markdown-body">
+          <h3>👋 Welcome to CloudShift Advisor</h3>
+          <p>I am your Google Cloud Principal Migration Copilot. I analyze VMware environments, calculate deterministic 3-Year TCO comparisons, design GCVE vs GCE landing zones, and formulate wave migration plans.</p>
+          <p><strong>To begin, share your workload metrics or click a quick scenario below:</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="input-container">
+  <div class="quick-chips">
+    <div class="chip" onclick="quickFill('We have 150 VMs, 600 vCPUs, 2400 GB RAM, and 80 TB storage in us-central1 with hard L2 stretched VLANs.')">⚡ 150 VMs (L2 Stretched GCVE)</div>
+    <div class="chip" onclick="quickFill('We have 80 VMs, 320 vCPUs, 1280 GB RAM, and 35 TB storage in us-central1. We can re-IP to GCE and want PAYG Windows licenses.')">💻 80 VMs (Re-IP to GCE)</div>
+    <div class="chip" onclick="quickFill('We have 1400 VMs, 5600 vCPUs, 22400 GB RAM, 700 TB storage in us-central1 with 300 L2 VMs and 1100 GCE VMs.')">🏢 1,400 VM Large Estate</div>
+    <div class="chip" onclick="quickFill('Compare ve1-standard-72 vs ve2-standard-128 node density and pricing in us-central1 for 250 VMs.')">🔬 ve1 vs ve2 Node Sizing</div>
+  </div>
+  <form id="form">
+    <input id="input" placeholder="Type your workload details or question…" autocomplete="off" autofocus>
+    <button id="send-btn" type="submit">
+      <span>Send</span>
+      <span class="material-symbols-outlined" style="font-size:18px;">send</span>
+    </button>
+  </form>
+</div>
 
 <script>
+// Safe markdown parsing using marked.parse
+function safeParseMarkdown(content) {
+  try {
+    if (typeof marked !== "undefined") {
+      const parsed = typeof marked.parse === "function" ? marked.parse(content) : marked(content);
+      return typeof DOMPurify !== "undefined" ? DOMPurify.sanitize(parsed) : parsed;
+    }
+  } catch (err) {
+    console.warn("Markdown parse fallback:", err);
+  }
+  // Safe plain text fallback
+  const div = document.createElement("div");
+  div.textContent = content;
+  return div.innerHTML.replace(/\n/g, "<br>");
+}
+
 const log = document.getElementById("log");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
+const sendBtn = document.getElementById("send-btn");
 
-function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function el(tag, cls, text) { 
+  const e = document.createElement(tag); 
+  if (cls) e.className = cls; 
+  if (text != null) e.textContent = text; 
+  return e; 
+}
 
 function bubble(who) {
   const m = el("div", "msg " + who);
+  const avatar = el("div", "avatar");
+  const icon = el("span", "material-symbols-outlined");
+  icon.textContent = who === "user" ? "person" : "smart_toy";
+  avatar.appendChild(icon);
+
+  const wrap = el("div", "bubble-wrap");
   const b = el("div", "bubble");
-  m.appendChild(b); log.appendChild(m); log.scrollTop = log.scrollHeight;
+  wrap.appendChild(b);
+
+  if (who === "user") {
+    m.appendChild(wrap);
+    m.appendChild(avatar);
+  } else {
+    m.appendChild(avatar);
+    m.appendChild(wrap);
+  }
+
+  log.appendChild(m);
+  log.scrollTop = log.scrollHeight;
   return b;
+}
+
+function quickFill(text) {
+  input.value = text;
+  input.focus();
+}
+
+function clearConversation() {
+  window.location.reload();
 }
 
 /* ----------------------------------------------------------------------------
  * A2UI mini-renderer (v0.8 Basic Catalog subset).
- * Renders Card / Column / Row / Text / Divider / List / Image / Icon.
- * Anything else falls back to plain text (see renderReply). All text goes in via
- * textContent and image URLs are validated, so agent output can't inject HTML.
  * -------------------------------------------------------------------------- */
-
-// A "bound value" is usually {literalString: "..."}; we only support literals.
 function boundStr(v) {
   if (v == null) return "";
   if (typeof v === "string") return v;
@@ -77,7 +517,6 @@ function boundStr(v) {
   return "";
 }
 
-// child ids of a component's props: single `child` and/or `children.explicitList`.
 function childIds(props) {
   const ids = [];
   if (props && typeof props.child === "string") ids.push(props.child);
@@ -86,11 +525,12 @@ function childIds(props) {
   return ids;
 }
 
-// A2UI icon names are camelCase (locationOn); Material Symbols wants snake_case.
-function iconName(n) { return String(n || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/\s+/g, "_").toLowerCase(); }
+function iconName(n) { 
+  return String(n || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/\s+/g, "_").toLowerCase(); 
+}
 
 function buildNode(id, comps, seen) {
-  if (!id || seen.has(id)) return null;   // missing / cycle guard
+  if (!id || seen.has(id)) return null;
   seen.add(id);
   const spec = comps[id];
   if (!spec || typeof spec !== "object") return null;
@@ -123,19 +563,17 @@ function buildNode(id, comps, seen) {
       return el("hr", "a2divider");
     case "Image": {
       const src = boundStr(props.url || props.src);
-      if (!/^https?:\/\//i.test(src)) return null;   // only allow safe URLs
+      if (!/^https?:\/\//i.test(src)) return null;
       const img = el("img", "a2img"); img.src = src; img.alt = boundStr(props.alt) || ""; return img;
     }
     case "Icon": {
       const s = el("span", "material-symbols-outlined"); s.textContent = iconName(boundStr(props.name) || props.name); return s;
     }
     default:
-      return null;   // unknown component -> skipped (text fallback covers content)
+      return null;
   }
 }
 
-// Render one or more A2UI messages (beginRendering + surfaceUpdate) into `container`.
-// Returns true if anything was drawn.
 function renderSurface(messages, container) {
   const comps = {};
   const roots = [];
@@ -145,55 +583,63 @@ function renderSurface(messages, container) {
     if (su && Array.isArray(su.components)) for (const c of su.components) if (c && c.id && c.component) comps[c.id] = c.component;
   }
   let rootIds = roots.filter(r => comps[r]);
-  if (rootIds.length === 0) {   // no valid root given -> infer un-referenced components
+  if (rootIds.length === 0) {
     const referenced = new Set();
     for (const id in comps) { const spec = comps[id]; childIds(spec[Object.keys(spec)[0]] || {}).forEach(c => referenced.add(c)); }
     rootIds = Object.keys(comps).filter(id => !referenced.has(id));
   }
   let drew = false;
-  for (const rid of rootIds) { const node = buildNode(rid, comps, new Set()); if (node) { container.appendChild(node); drew = true; } }
+  for (const rid of rootIds) { 
+    const node = buildNode(rid, comps, new Set()); 
+    if (node) { container.appendChild(node); drew = true; } 
+  }
   return drew;
 }
 
-// Fallback: pull every Text value out of the messages as plain text.
-function flattenText(messages) {
-  const out = [];
-  for (const m of messages) {
-    const su = m.surfaceUpdate;
-    if (su && Array.isArray(su.components)) for (const c of su.components) if (c && c.component && c.component.Text) out.push(boundStr(c.component.Text.text));
-  }
-  return out.join("\n").trim();
-}
-
 function renderReply(b, parts) {
-  b.textContent = "";   // clear the "…" placeholder
+  b.innerHTML = "";
   const texts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
   const a2ui = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
 
-  const textStr = texts.join("\n").trim();
-  if (textStr) b.appendChild(el("div", null, textStr));
+  const textStr = texts.join("\n\n").trim();
+  if (textStr) {
+    const cleanHtml = safeParseMarkdown(textStr);
+    const textContainer = el("div", "markdown-body");
+    textContainer.innerHTML = cleanHtml;
+    b.appendChild(textContainer);
+  }
 
   if (a2ui.length) {
-    b.classList.add("rich");
-    if (!renderSurface(a2ui, b)) b.appendChild(el("div", null, flattenText(a2ui) || "(no card content)"));
+    const a2uiContainer = el("div", "a2ui-surface");
+    if (renderSurface(a2ui, a2uiContainer)) {
+      b.appendChild(a2uiContainer);
+    }
   }
+
   if (!b.childNodes.length) b.textContent = "(no response)";
   log.scrollTop = log.scrollHeight;
 }
 
-// The proxy returns { parts: [{kind:"text",text} | {kind:"a2ui",data}] }.
 form.addEventListener("submit", async (ev) => {
   ev.preventDefault();
   const text = input.value.trim();
   if (!text) return;
+
   bubble("user").textContent = text;
   input.value = "";
-  const b = bubble("agent"); b.textContent = "…";
+  input.disabled = true;
+  sendBtn.disabled = true;
+
+  const b = bubble("agent"); 
+  b.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+
   try {
-    const res = await fetch("/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
-    // Read as text first, then parse. If the proxy ever returns a non-JSON error
-    // page (e.g. a plain "Internal Server Error"), show that body instead of a
-    // cryptic "Unexpected token" JSON error.
+    const res = await fetch("/chat", { 
+      method: "POST", 
+      headers: { "Content-Type": "application/json" }, 
+      body: JSON.stringify({ message: text }) 
+    });
+
     const raw = await res.text();
     let data;
     try { data = JSON.parse(raw); }
@@ -201,6 +647,11 @@ form.addEventListener("submit", async (ev) => {
     renderReply(b, data.parts || []);
   } catch (e) {
     b.textContent = "Error: " + e.message;
+  } finally {
+    input.disabled = false;
+    sendBtn.disabled = false;
+    input.focus();
+    log.scrollTop = log.scrollHeight;
   }
 });
 </script>

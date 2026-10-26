@@ -8,6 +8,7 @@ from google.adk.models import Gemini
 from google.adk.tools.preload_memory_tool import PreloadMemoryTool
 from google.genai import types
 
+from google.adk.code_executors import BuiltInCodeExecutor
 from app.a2ui_utils import a2ui_callback
 from app.tools.migration_tools import (
     parse_workload_metrics,
@@ -83,6 +84,7 @@ root_agent = Agent(
         calculate_tco_comparison,
         generate_migration_checklist,
     ],
+    code_executor=BuiltInCodeExecutor(),
     after_model_callback=a2ui_callback,
     after_agent_callback=generate_memories_callback,
 )
