@@ -1,0 +1,71 @@
+{
+  "version": "2026-10-26",
+  "updated_at": "2026-10-26T19:20:00Z",
+  "onprem_benchmark": {
+    "source": "Oct 2026 Broadcom VCF enterprise subscription and industry data center colocation benchmarks",
+    "vcf_annual_per_core": 350.0,
+    "vvf_annual_per_core": 140.0,
+    "hardware_depreciation_vcpu_mo": 24.0,
+    "hardware_depreciation_ram_gb_mo": 1.85,
+    "san_storage_tb_mo": 55.0,
+    "dc_facilities_vm_mo": 22.0,
+    "admin_ops_annual_salary": 145000.0
+  },
+  "regions": {
+    "us-central1": {
+      "name": "Iowa, USA",
+      "gce_vcpu_hour": 0.06603,
+      "gce_ram_gb_hour": 0.01651,
+      "gce_pd_balanced_gb_mo": 0.1,
+      "gcve_ve1_node_hour_ondemand": 9.29,
+      "gcve_ve1_node_hour_1yr_commit": 4.53,
+      "gcve_ve1_node_hour_3yr_commit": 3.46,
+      "gke_vcpu_hour": 0.0445,
+      "gke_ram_gb_hour": 0.0049
+    },
+    "us-east1": {
+      "name": "South Carolina, USA",
+      "gce_vcpu_hour": 0.06603,
+      "gce_ram_gb_hour": 0.01651,
+      "gce_pd_balanced_gb_mo": 0.1,
+      "gcve_ve1_node_hour_ondemand": 9.29,
+      "gcve_ve1_node_hour_1yr_commit": 4.53,
+      "gcve_ve1_node_hour_3yr_commit": 3.46,
+      "gke_vcpu_hour": 0.0445,
+      "gke_ram_gb_hour": 0.0049
+    },
+    "us-west1": {
+      "name": "Oregon, USA",
+      "gce_vcpu_hour": 0.06603,
+      "gce_ram_gb_hour": 0.01651,
+      "gce_pd_balanced_gb_mo": 0.1,
+      "gcve_ve1_node_hour_ondemand": 9.29,
+      "gcve_ve1_node_hour_1yr_commit": 4.53,
+      "gcve_ve1_node_hour_3yr_commit": 3.46,
+      "gke_vcpu_hour": 0.0445,
+      "gke_ram_gb_hour": 0.0049
+    },
+    "europe-west1": {
+      "name": "Belgium, Europe",
+      "gce_vcpu_hour": 0.07593,
+      "gce_ram_gb_hour": 0.01898,
+      "gce_pd_balanced_gb_mo": 0.11,
+      "gcve_ve1_node_hour_ondemand": 10.45,
+      "gcve_ve1_node_hour_1yr_commit": 5.1,
+      "gcve_ve1_node_hour_3yr_commit": 3.89,
+      "gke_vcpu_hour": 0.0512,
+      "gke_ram_gb_hour": 0.0056
+    },
+    "asia-southeast1": {
+      "name": "Singapore, Asia Pacific",
+      "gce_vcpu_hour": 0.0768,
+      "gce_ram_gb_hour": 0.0192,
+      "gce_pd_balanced_gb_mo": 0.115,
+      "gcve_ve1_node_hour_ondemand": 10.8,
+      "gcve_ve1_node_hour_1yr_commit": 5.25,
+      "gcve_ve1_node_hour_3yr_commit": 4.02,
+      "gke_vcpu_hour": 0.052,
+      "gke_ram_gb_hour": 0.0058
+    }
+  }
+}
